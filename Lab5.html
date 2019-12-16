@@ -1,0 +1,137 @@
+<html>
+<body>
+<div class= "canvas">
+<canvas id ="lab05" width='500' height='400' style="border:1px solid black;"/>
+</div>
+<div>
+    <p>1) Построение многоугольника (закончить построение - правая кнопка мыши)</p>
+    <p>2) Построение прямых и отсечение их многоугольником</p>	
+</div>
+<script>
+	function Line (ctx, x0, y0, x1, y1){
+		var xdir, ydir;
+		var y;
+		var eps = 0;
+		if (x0 < x1) xdir = 1;
+		else xdir = -1;
+		if (y0 < y1) ydir = 1;
+		else ydir = -1;
+					
+		if ( Math.abs(y1-y0) <= Math.abs(x1-x0)){
+			y = y0;
+			for (var x=x0; x*xdir <= x1*xdir; x += xdir){
+				ctx.fillRect(x, y, 1, 1);
+				eps +=2*Math.abs(y1-y0);
+				if(eps>Math.abs(x1-x0)) {
+				y += ydir;
+				eps -= 2*Math.abs(x1-x0);
+				}
+			}
+		} else {
+			x = x0;
+			for (var y=y0; y*ydir <= y1*ydir; y += ydir){
+				ctx.fillRect(x, y, 1, 1);
+				eps +=2*Math.abs(x1-x0);
+				if(eps>Math.abs(y1-y0)) {
+					x += xdir;
+					eps -= 2*Math.abs(y1-y0);
+				}
+			}
+		}
+		
+	}
+</script>
+<script>
+	var canvas = document.getElementById("lab05");
+	var ctx = canvas.getContext("2d");
+	
+	var flag = 0;
+	
+	var x = [];
+	var y = [];
+	
+	var i = 0;
+	
+	document.addEventListener("click", function(event) {
+		if (event.which == 1) {
+			if (flag == 0) {
+				x.push(event.offsetX);
+				y.push(event.offsetY);
+				i = i + 1;
+				flag = 1;
+			} else if (flag == 1) {
+				x.push(event.offsetX);
+				y.push(event.offsetY);
+				i = i + 1;
+				Line (ctx, x[i-2], y[i-2], x[i-1] ,y[i-1]);	
+			} else if (flag == 3) {
+				p1x = event.offsetX;
+				p1y = event.offsetY;
+				flag = 4;
+			} else if (flag == 4) {
+				p2x = event.offsetX;
+				p2y = event.offsetY;
+				var t1 = 0;
+				var t2 = 1;
+				
+				for (var j = 1; j <= i; ++j) {				
+					if (j != i){
+						var p = ( (p2x-p1x)*(y[j-1]-y[j])-(p2y-p1y)*(x[j-1]-x[j]) );
+						var q = ( (y[j-1]-y[j])*(p1x-x[j-1])+(x[j]-x[j-1])*(p1y-y[j-1]) );
+					} else {
+						var p = ( (p2x-p1x)*(y[j-1]-y[0])-(p2y-p1y)*(x[j-1]-x[0]) );
+						var q = ( (y[j-1]-y[0])*(p1x-x[j-1]) + (x[0]-x[j-1])*(p1y-y[j-1]) );
+					}
+					
+					if ( p != 0){
+						var t = -q/p
+						if (t<=1 && t>=0 ) {
+							if ( p > 0 && t > t1 && t < t2 ){
+								t2 = t;
+							} else if (p < 0 && t > t1 && t < t2 ){
+								t1 = t; 
+							}
+						} 	
+					} 
+				}
+				var ex = (p2x-p1x)*t1+p1x;
+				var ey = (p2y-p1y)*t1+p1y;
+				var ux = (p2x-p1x)*t2+p1x;
+				var uy = (p2y-p1y)*t2+p1y;
+				var cross = 0;
+				for (var j = 1; j <= i; ++j) {				
+					if (j != i){
+						var q = ( (y[j-1]-y[j])*(ex-x[j-1])+(x[j]-x[j-1])*(ey-y[j-1]) );
+					} else {
+						var q = ( (y[j-1]-y[0])*(ex-x[j-1]) + (x[0]-x[j-1])*(ey-y[j-1]) );
+					}
+					if ( q <= 1) cross++;
+				}
+				
+				if ( cross == i ){
+					var ex = (p2x-p1x)*t1+p1x;
+					var ey = (p2y-p1y)*t1+p1y;
+					var ux = (p2x-p1x)*t2+p1x;
+					var uy = (p2y-p1y)*t2+p1y;
+					Line(ctx, ex, ey, ux, uy); 
+				}
+				
+				
+				
+					
+				flag = 3;
+			}
+		}
+	});
+	
+	canvas.oncontextmenu = function() { 
+		if (flag == 1) 
+		{
+			Line(ctx, x[i-1], y[i-1], x[0] ,y[0]);
+		} 
+		flag = 3
+	}
+		
+</script>
+</body>
+</html>
